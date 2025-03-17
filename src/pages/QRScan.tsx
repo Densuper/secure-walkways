@@ -17,6 +17,7 @@ const QRScan = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   
   const handleScan = (result: string) => {
+    console.log('Scanned QR code:', result);
     // In a real app, we would verify this result against the backend
     setScannedResult(result);
     setShowConfirmation(true);
@@ -74,6 +75,9 @@ const QRScan = () => {
                   <p className="font-medium">{getCheckpointName(scannedResult!)}</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2 break-all">
+                    Code: {scannedResult}
                   </p>
                 </div>
                 
