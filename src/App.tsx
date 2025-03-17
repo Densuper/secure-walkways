@@ -15,9 +15,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import QRManagement from "./pages/QRManagement";
 import NotFound from "./pages/NotFound";
 
-// We need to install framer-motion for animations
-<lov-add-dependency>framer-motion@latest</lov-add-dependency>
-
 const queryClient = new QueryClient();
 
 const App = () => (
