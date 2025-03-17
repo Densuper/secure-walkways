@@ -8,8 +8,9 @@ import NavBar from '@/components/NavBar';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { mockPreviousWalks, formatDate } from '@/lib/utils';
-import { Calendar, FileText, Filter, LogOut, QrCode, Search } from 'lucide-react';
+import { Calendar, FileText, Filter, LogOut, QrCode, Search, Settings } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import UserManagementDialog from '@/components/UserManagementDialog';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const AdminDashboard = () => {
     user: '',
     date: '',
   });
+  const [showUserManagement, setShowUserManagement] = useState(false);
   
   const handleLogout = () => {
     logout();
@@ -46,14 +48,23 @@ const AdminDashboard = () => {
     }, 2000);
   };
 
+  const handleOpenSettings = () => {
+    setShowUserManagement(true);
+  };
+
   return (
     <Layout>
       <NavBar 
         title="Admin Dashboard" 
         rightAction={
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={handleOpenSettings}>
+              <Settings className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         }
       />
       
@@ -153,6 +164,11 @@ const AdminDashboard = () => {
           </div>
         </Card>
       </div>
+
+      <UserManagementDialog
+        open={showUserManagement}
+        onOpenChange={setShowUserManagement}
+      />
     </Layout>
   );
 };
