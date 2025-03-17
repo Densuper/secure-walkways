@@ -9,13 +9,15 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import CheckpointItem, { CheckpointProps } from '@/components/CheckpointItem';
 import { mockCheckpoints } from '@/lib/utils';
-import { Clock, LogOut, QrCode } from 'lucide-react';
+import { Clock, LogOut, QrCode, Smartphone } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [checkpoints, setCheckpoints] = useState<CheckpointProps[]>([]);
+  const [scanMethod, setScanMethod] = useState<'qr' | 'nfc'>('qr');
   
   // Load mock data
   useEffect(() => {
@@ -110,13 +112,41 @@ const UserDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.3 }}
         >
-          <Button 
-            onClick={() => navigate('/qr-scan')}
-            className="shadow-lg flex items-center gap-2 py-6 px-8"
-          >
-            <QrCode className="h-5 w-5 mr-2" />
-            Scan QR Code
-          </Button>
+          <div className="bg-white rounded-lg shadow-lg p-2 w-full max-w-md">
+            <Tabs 
+              defaultValue="qr" 
+              className="w-full"
+              onValueChange={(value) => setScanMethod(value as 'qr' | 'nfc')}
+            >
+              <TabsList className="grid w-full grid-cols-2 mb-2">
+                <TabsTrigger value="qr" className="flex items-center justify-center gap-2">
+                  <QrCode className="h-4 w-4" />
+                  <span>QR Code</span>
+                </TabsTrigger>
+                <TabsTrigger value="nfc" className="flex items-center justify-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  <span>NFC Tag</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              <Button 
+                onClick={() => navigate('/qr-scan')}
+                className="shadow-md flex items-center justify-center gap-2 py-4 px-8 w-full"
+              >
+                {scanMethod === 'qr' ? (
+                  <>
+                    <QrCode className="h-5 w-5 mr-2" />
+                    Scan QR Code
+                  </>
+                ) : (
+                  <>
+                    <Smartphone className="h-5 w-5 mr-2" />
+                    Scan NFC Tag
+                  </>
+                )}
+              </Button>
+            </Tabs>
+          </div>
         </motion.div>
       </div>
     </Layout>

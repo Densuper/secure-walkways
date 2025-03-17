@@ -7,17 +7,20 @@ import NavBar from '@/components/NavBar';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import QRScanner from '@/components/QRScanner';
+import NFCScanner from '@/components/NFCScanner';
 import { toast } from '@/components/ui/use-toast';
-import { Check, X } from 'lucide-react';
+import { Check, QrCode, Smartphone, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const QRScan = () => {
   const navigate = useNavigate();
   const { checkpointId } = useParams();
   const [scannedResult, setScannedResult] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [scanMethod, setScanMethod] = useState<'qr' | 'nfc'>('qr');
   
   const handleScan = (result: string) => {
-    console.log('Scanned QR code:', result);
+    console.log(`Scanned ${scanMethod === 'qr' ? 'QR code' : 'NFC tag'}:`, result);
     // In a real app, we would verify this result against the backend
     setScannedResult(result);
     setShowConfirmation(true);
@@ -37,27 +40,50 @@ const QRScan = () => {
     setScannedResult(null);
   };
   
-  const getCheckpointName = (qrCode: string) => {
-    // In a real app, we would look up the checkpoint name from the QR code
+  const getCheckpointName = (code: string) => {
+    // In a real app, we would look up the checkpoint name from the code
     // For now, we'll just return a mock name
     return "East Wing Corridor";
   };
 
   return (
     <Layout>
-      <NavBar title="Scan QR Code" showBack />
+      <NavBar title={`Scan ${scanMethod === 'qr' ? 'QR Code' : 'NFC Tag'}`} showBack />
       
       <div className="py-6 space-y-6">
         <Card>
           <h2 className="text-xl font-semibold mb-4 text-center">
-            {checkpointId ? `Scan for specific checkpoint` : 'Scan Checkpoint QR Code'}
+            {checkpointId 
+              ? `Scan for specific checkpoint` 
+              : `Scan Checkpoint ${scanMethod === 'qr' ? 'QR Code' : 'NFC Tag'}`
+            }
           </h2>
           
           <p className="text-muted-foreground text-center mb-6">
-            Position the QR code within the frame to scan
+            {scanMethod === 'qr' 
+              ? 'Position the QR code within the frame to scan' 
+              : 'Hold your device near the NFC tag to scan'
+            }
           </p>
           
-          <QRScanner onScan={handleScan} />
+          <Tabs defaultValue="qr" className="mb-6" onValueChange={(value) => setScanMethod(value as 'qr' | 'nfc')}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="qr" className="flex items-center gap-2">
+                <QrCode className="h-4 w-4" />
+                <span>QR Code</span>
+              </TabsTrigger>
+              <TabsTrigger value="nfc" className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4" />
+                <span>NFC Tag</span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="qr">
+              <QRScanner onScan={handleScan} />
+            </TabsContent>
+            <TabsContent value="nfc">
+              <NFCScanner onScan={handleScan} />
+            </TabsContent>
+          </Tabs>
         </Card>
         
         <AnimatePresence>
