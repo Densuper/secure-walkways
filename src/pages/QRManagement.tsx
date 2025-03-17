@@ -36,11 +36,8 @@ const QRManagement = () => {
     setShowScanner(false);
     
     if (scanMode === 'assign') {
-      // Show input for checkpoint name
       setNewCheckpointName('');
-      // In a real app, this would open a modal to enter checkpoint details
     } else {
-      // Verify QR code
       const qrCode = qrCodes.find(qr => qr.id === result);
       if (qrCode) {
         toast({
@@ -63,7 +60,6 @@ const QRManagement = () => {
   
   const confirmDelete = () => {
     if (showDeleteConfirm) {
-      // In a real app, this would send a delete request to the backend
       setQRCodes(qrCodes.filter(qr => qr.id !== showDeleteConfirm));
       toast({
         title: "QR Code deleted",
@@ -200,8 +196,8 @@ const QRManagement = () => {
                 </Button>
                 
                 <Button
-                  variant="destructive"
-                  className="flex-1"
+                  variant="primary"
+                  className="flex-1 bg-red-600 hover:bg-red-700"
                   onClick={confirmDelete}
                 >
                   Delete
