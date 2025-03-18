@@ -25,7 +25,7 @@ export const useAuth = () => {
   return context;
 };
 
-// Replace with your actual Orange Pi IP and port
+// Configure this to point to your Linux server API endpoint
 const API_BASE_URL = "http://your-server-ip:3000";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

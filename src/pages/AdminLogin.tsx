@@ -24,7 +24,7 @@ const AdminLogin = () => {
     setIsSubmitting(true);
 
     try {
-      const success = await login(username, password, 'admin');
+      const success = await login(username, password);
       
       if (success) {
         toast({

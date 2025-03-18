@@ -24,7 +24,7 @@ const UserLogin = () => {
     setIsSubmitting(true);
 
     try {
-      const success = await login(username, password, 'user');
+      const success = await login(username, password);
       
       if (success) {
         toast({
