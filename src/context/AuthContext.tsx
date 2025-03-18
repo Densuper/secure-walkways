@@ -25,10 +25,13 @@ export const useAuth = () => {
   return context;
 };
 
-// Configure this to point to your Linux server API endpoint
-// You can set this to your server's IP address and port
-// For example: "http://192.168.1.100:3000" or "http://your-server-hostname:3000"
-const API_BASE_URL = "http://your-server-ip:3000";
+// Dynamically determine the API base URL
+// In development: Use the Vite environment variable
+// In production: Default to the current origin (same server)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (window.location.origin.includes('localhost') ? 'http://localhost:3000' : window.location.origin);
+
+console.log('API Base URL:', API_BASE_URL);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
