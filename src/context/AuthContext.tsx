@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 interface User {
   id: string;
@@ -10,7 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (username: string, password: string, role: 'user' | 'admin') => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -23,6 +24,9 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Replace with your actual Orange Pi IP and port
+const API_BASE_URL = "http://your-server-ip:3000";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -37,35 +41,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const login = async (username: string, password: string, role: 'user' | 'admin'): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     setLoading(true);
     
-    // This is a mock authentication - in a real app, we would validate credentials against a backend
-    return new Promise((resolve) => {
-      // Simulate API call
-      setTimeout(() => {
-        // For demo purposes, any non-empty username/password combination is valid
-        if (username.trim() && password.trim()) {
-          const newUser = {
-            id: `${role}_${Date.now()}`,
-            username,
-            role
-          };
-          setUser(newUser);
-          localStorage.setItem('secureWalkUser', JSON.stringify(newUser));
-          setLoading(false);
-          resolve(true);
-        } else {
-          setLoading(false);
-          resolve(false);
-        }
-      }, 1000);
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const newUser = {
+          id: `${data.user.role}_${Date.now()}`,
+          username: data.user.username,
+          role: data.user.role as 'user' | 'admin'
+        };
+        
+        setUser(newUser);
+        localStorage.setItem('secureWalkUser', JSON.stringify(newUser));
+        
+        // Store the JWT token for authenticated requests
+        localStorage.setItem('secureWalkToken', data.token);
+        
+        setLoading(false);
+        return true;
+      } else {
+        setLoading(false);
+        toast({
+          title: "Login failed",
+          description: data.error || "Invalid credentials",
+          variant: "destructive"
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setLoading(false);
+      toast({
+        title: "Connection error",
+        description: "Could not connect to the server. Please check your network connection.",
+        variant: "destructive"
+      });
+      return false;
+    }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('secureWalkUser');
+    localStorage.removeItem('secureWalkToken');
   };
 
   return (

@@ -35,36 +35,35 @@ const NFCScanner = ({ onScan }: NFCScannerProps) => {
       
       console.log("NFC scan started");
       
-      ndef.addEventListener("reading", ({ message, serialNumber }: any) => {
-        console.log("NFC tag read:", serialNumber);
+      ndef.onreading = (event: any) => {
+        console.log("NFC tag read:", event.serialNumber);
         
         // Process NDEF message
-        if (message.records && message.records.length > 0) {
-          for (const record of message.records) {
-            if (record.recordType === "text") {
-              const textDecoder = new TextDecoder();
-              const text = textDecoder.decode(record.data);
-              console.log("NFC tag content:", text);
-              onScan(text);
-              stopScan();
-              return;
-            }
+        if (event.message && event.message.records && event.message.records.length > 0) {
+          const record = event.message.records[0];
+          if (record) {
+            const textDecoder = new TextDecoder();
+            const text = textDecoder.decode(record.data);
+            console.log("NFC tag content:", text);
+            onScan(text);
+            stopScan();
+            return;
           }
         }
         
         // If no text record found, use the serial number as fallback
-        onScan(serialNumber);
+        onScan(event.serialNumber);
         stopScan();
-      });
+      };
       
-      ndef.addEventListener("error", (error: any) => {
+      ndef.onerror = (error: any) => {
         console.error("NFC error:", error);
-        setError(`NFC error: ${error.message}`);
+        setError(`NFC error: ${error.message || 'Unknown error'}`);
         stopScan();
-      });
+      };
     } catch (error: any) {
       console.error("Error starting NFC scan:", error);
-      setError(`Error starting NFC scan: ${error.message}`);
+      setError(`Error starting NFC scan: ${error.message || 'Unknown error'}`);
       setIsScanning(false);
     }
   };
