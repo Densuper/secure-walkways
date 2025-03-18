@@ -26,6 +26,8 @@ export const useAuth = () => {
 };
 
 // Configure this to point to your Linux server API endpoint
+// You can set this to your server's IP address and port
+// For example: "http://192.168.1.100:3000" or "http://your-server-hostname:3000"
 const API_BASE_URL = "http://your-server-ip:3000";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

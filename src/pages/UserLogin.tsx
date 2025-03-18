@@ -24,6 +24,7 @@ const UserLogin = () => {
     setIsSubmitting(true);
 
     try {
+      // Call login with only username and password
       const success = await login(username, password);
       
       if (success) {
