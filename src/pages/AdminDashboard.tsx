@@ -8,9 +8,10 @@ import NavBar from '@/components/NavBar';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { mockPreviousWalks, formatDate } from '@/lib/utils';
-import { Calendar, FileText, Filter, LogOut, QrCode, Search, Settings } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, FileText, Filter, LogOut, QrCode, Search, Settings } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import UserManagementDialog from '@/components/UserManagementDialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const AdminDashboard = () => {
     date: '',
   });
   const [showUserManagement, setShowUserManagement] = useState(false);
+  const [expandedWalk, setExpandedWalk] = useState<string | null>(null);
   
   const handleLogout = () => {
     logout();
@@ -50,6 +52,10 @@ const AdminDashboard = () => {
 
   const handleOpenSettings = () => {
     setShowUserManagement(true);
+  };
+
+  const toggleExpand = (walkId: string) => {
+    setExpandedWalk(expandedWalk === walkId ? null : walkId);
   };
 
   return (
@@ -118,49 +124,89 @@ const AdminDashboard = () => {
             </Button>
           </div>
           
-          <div className="border rounded-md overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="py-2 px-4 text-left text-sm font-medium">Date</th>
-                  <th className="py-2 px-4 text-left text-sm font-medium">User</th>
-                  <th className="py-2 px-4 text-left text-sm font-medium">Completion</th>
-                  <th className="py-2 px-4 text-left text-sm font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {['John Doe', 'Sarah Connor', 'Alex Smith'].map((username, userIndex) => 
-                  mockPreviousWalks.map((walk, walkIndex) => {
-                    const completed = walk.checkpoints.filter(cp => cp.completed).length;
-                    const total = walk.checkpoints.length;
-                    const status = completed === total ? 'Complete' : 'Incomplete';
-                    
-                    return (
-                      <motion.tr 
-                        key={`${username}-${walk.date}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.05 * (userIndex + walkIndex) }}
-                        className="hover:bg-muted/20"
-                      >
-                        <td className="py-3 px-4">{formatDate(walk.date)}</td>
-                        <td className="py-3 px-4">{username}</td>
-                        <td className="py-3 px-4">{completed}/{total}</td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            status === 'Complete' 
-                              ? 'bg-success/20 text-success' 
-                              : 'bg-warning/20 text-warning'
-                          }`}>
-                            {status}
-                          </span>
-                        </td>
-                      </motion.tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+          <div className="space-y-2">
+            {['John Doe', 'Sarah Connor', 'Alex Smith'].map((username, userIndex) => 
+              mockPreviousWalks.map((walk, walkIndex) => {
+                const completed = walk.checkpoints.filter(cp => cp.completed).length;
+                const total = walk.checkpoints.length;
+                const status = completed === total ? 'Complete' : 'Incomplete';
+                const walkId = `${username}-${walk.date}-${walkIndex}`;
+                
+                return (
+                  <motion.div 
+                    key={walkId}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.05 * (userIndex + walkIndex) }}
+                  >
+                    <Collapsible
+                      open={expandedWalk === walkId}
+                      onOpenChange={() => toggleExpand(walkId)}
+                      className="border rounded-lg overflow-hidden bg-white"
+                    >
+                      <CollapsibleTrigger className="w-full" asChild>
+                        <div className="cursor-pointer">
+                          <div className="flex items-center justify-between p-3 hover:bg-muted/20 transition-colors">
+                            <div className="flex flex-1 items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="flex-1">
+                                  <div className="font-medium">{formatDate(walk.date)}</div>
+                                  <div className="text-sm text-muted-foreground">{username}</div>
+                                </div>
+                                <div className="text-sm">
+                                  {completed}/{total} complete
+                                </div>
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  status === 'Complete' 
+                                    ? 'bg-success/20 text-success' 
+                                    : 'bg-warning/20 text-warning'
+                                }`}>
+                                  {status}
+                                </span>
+                              </div>
+                              {expandedWalk === walkId ? (
+                                <ChevronUp className="h-4 w-4 text-muted-foreground ml-2" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground ml-2" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="p-4 border-t bg-muted/10">
+                          <h4 className="font-medium mb-2">Checkpoint Details</h4>
+                          <div className="space-y-2">
+                            {walk.checkpoints.map((checkpoint) => (
+                              <div 
+                                key={checkpoint.id}
+                                className="flex items-center justify-between p-2 border rounded-md"
+                              >
+                                <div>
+                                  <div className="font-medium">{checkpoint.name}</div>
+                                  {checkpoint.timestamp && (
+                                    <div className="text-sm text-muted-foreground">
+                                      {checkpoint.timestamp}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className={`px-2 py-1 rounded-full text-xs ${
+                                  checkpoint.completed 
+                                    ? 'bg-success/20 text-success' 
+                                    : 'bg-warning/20 text-warning'
+                                }`}>
+                                  {checkpoint.completed ? 'Completed' : 'Pending'}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </Card>
       </div>

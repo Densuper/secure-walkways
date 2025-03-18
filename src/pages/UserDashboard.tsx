@@ -9,15 +9,17 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import CheckpointItem, { CheckpointProps } from '@/components/CheckpointItem';
 import { mockCheckpoints } from '@/lib/utils';
-import { Clock, LogOut, QrCode, Smartphone } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, LogOut, QrCode, Smartphone } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [checkpoints, setCheckpoints] = useState<CheckpointProps[]>([]);
   const [scanMethod, setScanMethod] = useState<'qr' | 'nfc'>('qr');
+  const [expandedCheckpoint, setExpandedCheckpoint] = useState<string | null>(null);
   
   // Load mock data
   useEffect(() => {
@@ -41,6 +43,10 @@ const UserDashboard = () => {
   
   const handleViewHistory = () => {
     navigate('/walk-history');
+  };
+
+  const toggleExpand = (checkpointId: string) => {
+    setExpandedCheckpoint(expandedCheckpoint === checkpointId ? null : checkpointId);
   };
 
   return (
@@ -97,10 +103,55 @@ const UserDashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index, duration: 0.3 }}
               >
-                <CheckpointItem 
-                  {...checkpoint} 
-                  onClick={() => handleCheckpointClick(checkpoint)}
-                />
+                <Collapsible
+                  open={expandedCheckpoint === checkpoint.id}
+                  onOpenChange={() => toggleExpand(checkpoint.id)}
+                  className="border rounded-lg overflow-hidden"
+                >
+                  <CollapsibleTrigger className="w-full" asChild>
+                    <div className="cursor-pointer">
+                      <div className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
+                        <div className="flex flex-col">
+                          <span className="font-medium">{checkpoint.name}</span>
+                          {checkpoint.timestamp && (
+                            <span className="text-sm text-muted-foreground flex items-center mt-1">
+                              <Clock className="mr-1 h-3 w-3" /> {checkpoint.timestamp}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className={`rounded-full h-3 w-3 ${checkpoint.completed ? 'bg-success' : 'bg-warning'}`}></div>
+                          {expandedCheckpoint === checkpoint.id ? (
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="p-3 border-t bg-muted/20">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            <strong>Status:</strong> {checkpoint.completed ? 'Completed' : 'Pending'}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            <strong>Location:</strong> {checkpoint.name}
+                          </p>
+                        </div>
+                        <Button 
+                          size="sm"
+                          variant={checkpoint.completed ? "outline" : "default"}
+                          onClick={() => handleCheckpointClick(checkpoint)}
+                        >
+                          {checkpoint.completed ? 'Details' : 'Scan'}
+                        </Button>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </motion.div>
             ))}
           </div>
