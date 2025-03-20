@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -53,8 +54,7 @@ const QRManagement = () => {
       // In a real app, you would call your backend API here
       console.log(`Updating QR code ${id} name to ${newName} on server`);
       
-      // Simulated API call
-      /*
+      // Actual API call
       const response = await fetch(`${API_BASE_URL}/api/update-qrcode`, {
         method: "POST",
         headers: { 
@@ -68,21 +68,23 @@ const QRManagement = () => {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to update QR code name");
       }
-      */
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const data = await response.json();
       
-      toast({
-        title: "QR Code Updated",
-        description: `Name changed to "${newName}"`,
-      });
-      return true;
+      if (data.success) {
+        toast({
+          title: "QR Code Updated",
+          description: `Name changed to "${newName}"`,
+        });
+        return true;
+      } else {
+        throw new Error(data.error || "Failed to update QR code name");
+      }
     } catch (error) {
       console.error("Failed to update QR code name", error);
       toast({
         title: "Update Failed",
-        description: "Could not update the QR code name on the server",
+        description: error instanceof Error ? error.message : "Could not update the QR code name on the server",
         variant: "destructive"
       });
       return false;
@@ -132,27 +134,72 @@ const QRManagement = () => {
     setShowScanner(true);
   };
   
-  const handleScan = (result: string) => {
+  const handleScan = async (result: string) => {
     setShowScanner(false);
     
     if (scanMode === 'assign') {
+      // Check if the QR/NFC code already exists
+      const existingTag = checkpointTags.find(tag => tag.id === result && tag.type === scanType);
+      
+      if (existingTag) {
+        toast({
+          title: `${scanType.toUpperCase()} already exists`,
+          description: `This ${scanType.toUpperCase()} is already assigned to "${existingTag.checkpointName}"`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // If this is a new QR/NFC code
       setNewCheckpointName('');
-      // Would show dialog to assign checkpoint name
-      // For now, let's just add a mock checkpoint
-      const newTag: CheckpointTag = {
-        id: result,
-        checkpointId: `cp-${Math.floor(Math.random() * 1000)}`,
-        checkpointName: `New ${scanType.toUpperCase()} Checkpoint ${checkpointTags.length + 1}`,
-        type: scanType
-      };
       
-      setCheckpointTags([...checkpointTags, newTag]);
+      // Create a default name
+      const newTagName = `New ${scanType.toUpperCase()} Checkpoint ${checkpointTags.length + 1}`;
       
-      toast({
-        title: `${scanType.toUpperCase()} assigned successfully`,
-        description: `${scanType.toUpperCase()} has been assigned to checkpoint "${newTag.checkpointName}"`,
-      });
+      try {
+        // Try to add the new QR/NFC code to the server
+        const response = await fetch(`${API_BASE_URL}/api/add-checkpoint-tag`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('secureWalkToken')}`
+          },
+          body: JSON.stringify({
+            id: result,
+            checkpointName: newTagName,
+            type: scanType
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to add checkpoint tag");
+        }
+        
+        // Add to local state
+        const newTag: CheckpointTag = {
+          id: result,
+          checkpointId: `cp-${Math.floor(Math.random() * 1000)}`,
+          checkpointName: newTagName,
+          type: scanType
+        };
+        
+        setCheckpointTags([...checkpointTags, newTag]);
+        
+        toast({
+          title: `${scanType.toUpperCase()} assigned successfully`,
+          description: `${scanType.toUpperCase()} has been assigned to checkpoint "${newTag.checkpointName}"`,
+        });
+      } catch (error) {
+        console.error("Error adding checkpoint tag:", error);
+        toast({
+          title: "Failed to add checkpoint tag",
+          description: error instanceof Error ? error.message : "An unexpected error occurred",
+          variant: "destructive"
+        });
+      }
     } else {
+      // Verify mode
       const tag = checkpointTags.find(tag => tag.id === result && tag.type === scanType);
       if (tag) {
         toast({
@@ -173,14 +220,40 @@ const QRManagement = () => {
     setShowDeleteConfirm(id);
   };
   
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (showDeleteConfirm) {
-      setCheckpointTags(checkpointTags.filter(tag => tag.id !== showDeleteConfirm));
-      toast({
-        title: "Tag deleted",
-        description: "The checkpoint tag has been deleted successfully",
-      });
-      setShowDeleteConfirm(null);
+      try {
+        // Try to delete the checkpoint tag from the server
+        const response = await fetch(`${API_BASE_URL}/api/delete-checkpoint-tag`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('secureWalkToken')}`
+          },
+          body: JSON.stringify({ id: showDeleteConfirm }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to delete checkpoint tag");
+        }
+        
+        // Remove from local state
+        setCheckpointTags(checkpointTags.filter(tag => tag.id !== showDeleteConfirm));
+        toast({
+          title: "Tag deleted",
+          description: "The checkpoint tag has been deleted successfully",
+        });
+      } catch (error) {
+        console.error("Error deleting checkpoint tag:", error);
+        toast({
+          title: "Failed to delete checkpoint tag",
+          description: error instanceof Error ? error.message : "An unexpected error occurred",
+          variant: "destructive"
+        });
+      } finally {
+        setShowDeleteConfirm(null);
+      }
     }
   };
   

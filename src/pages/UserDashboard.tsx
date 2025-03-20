@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -8,10 +9,20 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import CheckpointItem, { CheckpointProps } from '@/components/CheckpointItem';
 import { mockCheckpoints } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Clock, LogOut, QrCode, Smartphone } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, LogOut, QrCode, Smartphone, AlertTriangle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+
+interface Walk {
+  id: string;
+  status: 'Ongoing' | 'Completed' | 'Partially Completed' | 'Completed (Interrupted)';
+  date: string;
+}
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -19,13 +30,43 @@ const UserDashboard = () => {
   const [checkpoints, setCheckpoints] = useState<CheckpointProps[]>([]);
   const [scanMethod, setScanMethod] = useState<'qr' | 'nfc'>('qr');
   const [expandedCheckpoint, setExpandedCheckpoint] = useState<string | null>(null);
+  const [pendingWalk, setPendingWalk] = useState<Walk | null>(null);
+  const [showWalkDialog, setShowWalkDialog] = useState(false);
   
-  // Load mock data
+  // Load mock data and check for pending walks
   useEffect(() => {
     setCheckpoints(mockCheckpoints);
-  }, []);
+    
+    // Check for pending walks (this would normally be an API call)
+    const checkPendingWalks = async () => {
+      if (user) {
+        try {
+          // This would be a real API call in production
+          // const response = await fetch(`${API_BASE_URL}/api/pending-walks?userId=${user.id}`);
+          // const data = await response.json();
+          
+          // For now, check if there's a saved walk in sessionStorage
+          const savedWalkId = sessionStorage.getItem(`ongoingWalk_${user.id}`);
+          
+          if (savedWalkId) {
+            // Mock pending walk for demo
+            setPendingWalk({
+              id: savedWalkId,
+              status: 'Partially Completed',
+              date: new Date().toISOString()
+            });
+            setShowWalkDialog(true);
+          }
+        } catch (error) {
+          console.error("Error checking pending walks:", error);
+        }
+      }
+    };
+    
+    checkPendingWalks();
+  }, [user]);
   
-  // Load expanded state from localStorage on mount with user-specific key
+  // Load expanded state from sessionStorage on mount with user-specific key
   useEffect(() => {
     if (user) {
       const savedState = sessionStorage.getItem(`userExpandedCheckpoint_${user.id}`);
@@ -43,6 +84,31 @@ const UserDashboard = () => {
   const remainingCount = checkpoints.length - completedCount;
   
   const handleLogout = () => {
+    // If there's an ongoing walk, save its status
+    if (user) {
+      const ongoingWalkId = sessionStorage.getItem(`ongoingWalk_${user.id}`);
+      
+      if (ongoingWalkId) {
+        // In a real app, this would be an API call to save walk progress
+        try {
+          fetch(`${API_BASE_URL}/api/save-walk-progress`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem('secureWalkToken')}`
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              walkId: ongoingWalkId,
+              status: 'Partially Completed'
+            }),
+          }).catch(err => console.error("Error saving walk progress:", err));
+        } catch (error) {
+          console.error("Error saving walk progress:", error);
+        }
+      }
+    }
+    
     logout();
     toast({
       title: "Logged out successfully",
@@ -64,6 +130,78 @@ const UserDashboard = () => {
     // Save to sessionStorage with user-specific key
     if (user) {
       sessionStorage.setItem(`userExpandedCheckpoint_${user.id}`, JSON.stringify(newExpandedState));
+    }
+  };
+  
+  const resumeWalk = async () => {
+    if (pendingWalk) {
+      try {
+        // In a real app, this would be an API call to get the walk's checkpoints
+        // const response = await fetch(`${API_BASE_URL}/api/walk/${pendingWalk.id}`);
+        // const data = await response.json();
+        // setCheckpoints(data.checkpoints);
+        
+        toast({
+          title: "Walk Resumed",
+          description: "Continuing from your last checkpoint"
+        });
+        
+        setShowWalkDialog(false);
+      } catch (error) {
+        console.error("Error resuming walk:", error);
+        toast({
+          title: "Error",
+          description: "Failed to resume walk",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+  
+  const startNewWalk = async () => {
+    if (pendingWalk && user) {
+      try {
+        // Mark the old walk as interrupted and start a new one
+        const response = await fetch(`${API_BASE_URL}/api/start-new-walk`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('secureWalkToken')}`
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            walkId: pendingWalk.id
+          }),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to start new walk");
+        }
+        
+        const data = await response.json();
+        
+        // Save new walk ID
+        sessionStorage.setItem(`ongoingWalk_${user.id}`, data.newWalkId);
+        
+        // Reset checkpoints
+        setCheckpoints(mockCheckpoints.map(cp => ({ ...cp, completed: false, timestamp: undefined })));
+        
+        toast({
+          title: "New Walk Started",
+          description: "Previous walk saved as 'Completed (Interrupted)'"
+        });
+        
+        setShowWalkDialog(false);
+        setPendingWalk(null);
+      } catch (error) {
+        console.error("Error starting new walk:", error);
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to start new walk",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -218,6 +356,40 @@ const UserDashboard = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Pending Walk Dialog */}
+      <Dialog open={showWalkDialog} onOpenChange={setShowWalkDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Incomplete Security Walk
+            </DialogTitle>
+            <DialogDescription>
+              You have an incomplete security walk from {pendingWalk ? new Date(pendingWalk.date).toLocaleString() : ''}. 
+              Would you like to resume it or start a new one?
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3">
+            <Button 
+              className="w-full" 
+              variant="default" 
+              onClick={resumeWalk}
+            >
+              Resume Walk
+            </Button>
+            
+            <Button 
+              className="w-full" 
+              variant="outline" 
+              onClick={startNewWalk}
+            >
+              Start New Walk
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };

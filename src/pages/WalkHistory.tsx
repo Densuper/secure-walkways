@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlickeringGrid } from '@/components/ui/flickering-grid';
 import FlickeringGridDemo from '@/components/FlickeringGridDemo';
+import { useAuth } from '@/context/AuthContext';
 
 // Mock data for walk history
 const mockWalkHistory = [
@@ -45,11 +46,38 @@ const mockWalkHistory = [
 
 const WalkHistory = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [expandedWalk, setExpandedWalk] = useState<string | null>(null);
   const [filter, setFilter] = useState('all');
   
+  // Load expanded state from sessionStorage on mount with user-specific key
+  useEffect(() => {
+    if (user) {
+      const savedState = sessionStorage.getItem(`adminExpandedWalk_${user.id}`);
+      if (savedState) {
+        try {
+          setExpandedWalk(JSON.parse(savedState));
+        } catch (e) {
+          console.error("Error parsing saved expand state:", e);
+        }
+      }
+    }
+  }, [user]);
+  
   const toggleExpand = (walkId: string) => {
-    setExpandedWalk(expandedWalk === walkId ? null : walkId);
+    const newExpandedState = expandedWalk === walkId ? null : walkId;
+    setExpandedWalk(newExpandedState);
+    // Save to sessionStorage with user-specific key
+    if (user) {
+      sessionStorage.setItem(`adminExpandedWalk_${user.id}`, JSON.stringify(newExpandedState));
+    }
+  };
+  
+  const navigateToDetails = (walkId: string) => {
+    // In a real app, we would navigate to a walk details page
+    // For now, we'll log it and show a toast
+    console.log(`Navigate to details for walk ${walkId}`);
+    navigate(`/walk-details/${walkId}`);
   };
 
   return (
@@ -152,6 +180,7 @@ const WalkHistory = () => {
                           size="sm"
                           variant="outline"
                           className="w-full"
+                          onClick={() => navigateToDetails(walk.id)}
                         >
                           View Details
                         </Button>

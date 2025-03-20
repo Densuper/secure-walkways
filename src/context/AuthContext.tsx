@@ -96,8 +96,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearUserSessionData = () => {
     // Clear all user-specific session data
     if (user) {
+      // Clear expanded state data
       sessionStorage.removeItem(`userExpandedCheckpoint_${user.id}`);
       sessionStorage.removeItem(`adminExpandedWalk_${user.id}`);
+      
+      // If there's an ongoing walk, save its state
+      const ongoingWalkId = sessionStorage.getItem(`ongoingWalk_${user.id}`);
+      if (ongoingWalkId && user.role === 'user') {
+        try {
+          // Try to mark the walk as "Partially Completed" on the server
+          fetch(`${API_BASE_URL}/api/save-walk-progress`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem('secureWalkToken')}`
+            },
+            body: JSON.stringify({ 
+              userId: user.id, 
+              walkId: ongoingWalkId,
+              status: 'Partially Completed'
+            }),
+          }).catch(err => console.error("Error saving walk progress:", err));
+        } catch (error) {
+          console.error("Error saving walk progress:", error);
+        }
+      }
     }
   };
 
@@ -121,12 +144,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Continue with local logout even if server request fails
         }
       }
+      
+      // Clear user data from state and storage
+      setUser(null);
+      localStorage.removeItem('secureWalkUser');
+      localStorage.removeItem('secureWalkToken');
     }
-    
-    // Clear user data from state and storage
-    setUser(null);
-    localStorage.removeItem('secureWalkUser');
-    localStorage.removeItem('secureWalkToken');
   };
 
   return (

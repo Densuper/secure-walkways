@@ -32,6 +32,7 @@ const App = () => (
             <Route path="/qr-scan" element={<QRScan />} />
             <Route path="/qr-scan/:checkpointId" element={<QRScan />} />
             <Route path="/walk-history" element={<WalkHistory />} />
+            <Route path="/walk-details/:walkId" element={<QRScan />} /> {/* Reusing QRScan as a placeholder for now */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/qr-management" element={<QRManagement />} />
             <Route path="*" element={<NotFound />} />
