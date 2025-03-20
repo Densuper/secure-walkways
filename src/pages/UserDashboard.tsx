@@ -25,17 +25,19 @@ const UserDashboard = () => {
     setCheckpoints(mockCheckpoints);
   }, []);
   
-  // Load expanded state from localStorage on mount
+  // Load expanded state from localStorage on mount with user-specific key
   useEffect(() => {
-    const savedState = localStorage.getItem("userExpandedCheckpoint");
-    if (savedState) {
-      try {
-        setExpandedCheckpoint(JSON.parse(savedState));
-      } catch (e) {
-        console.error("Error parsing saved expand state:", e);
+    if (user) {
+      const savedState = sessionStorage.getItem(`userExpandedCheckpoint_${user.id}`);
+      if (savedState) {
+        try {
+          setExpandedCheckpoint(JSON.parse(savedState));
+        } catch (e) {
+          console.error("Error parsing saved expand state:", e);
+        }
       }
     }
-  }, []);
+  }, [user]);
   
   const completedCount = checkpoints.filter(cp => cp.completed).length;
   const remainingCount = checkpoints.length - completedCount;
@@ -59,8 +61,10 @@ const UserDashboard = () => {
   const toggleExpand = (checkpointId: string) => {
     const newExpandedState = expandedCheckpoint === checkpointId ? null : checkpointId;
     setExpandedCheckpoint(newExpandedState);
-    // Save to localStorage
-    localStorage.setItem("userExpandedCheckpoint", JSON.stringify(newExpandedState));
+    // Save to sessionStorage with user-specific key
+    if (user) {
+      sessionStorage.setItem(`userExpandedCheckpoint_${user.id}`, JSON.stringify(newExpandedState));
+    }
   };
 
   return (

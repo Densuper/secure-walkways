@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -8,7 +7,7 @@ import Button from '@/components/Button';
 import QRScanner from '@/components/QRScanner';
 import NFCScanner from '@/components/NFCScanner';
 import { mockQRCodes } from '@/lib/utils';
-import { Edit, Plus, QrCode, Smartphone, Trash, Check, X } from 'lucide-react';
+import { Edit, Plus, QrCode, Smartphone, Trash, Check, X, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -35,16 +34,28 @@ const QRManagement = () => {
   const [newCheckpointName, setNewCheckpointName] = useState('');
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
   
   // Function to update QR code name on the server
   const updateQRCodeNameOnServer = async (id: string, newName: string) => {
+    if (!newName.trim()) {
+      toast({
+        title: "Invalid Name",
+        description: "Checkpoint name cannot be empty",
+        variant: "destructive"
+      });
+      return false;
+    }
+    
+    setIsUpdating(true);
+    
     try {
       // In a real app, you would call your backend API here
       console.log(`Updating QR code ${id} name to ${newName} on server`);
       
       // Simulated API call
       /*
-      await fetch(`${API_BASE_URL}/api/update-qrcode`, {
+      const response = await fetch(`${API_BASE_URL}/api/update-qrcode`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -52,13 +63,21 @@ const QRManagement = () => {
         },
         body: JSON.stringify({ id, newName }),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update QR code name");
+      }
       */
       
-      // For now we're just logging the request that would be made
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast({
         title: "QR Code Updated",
         description: `Name changed to "${newName}"`,
       });
+      return true;
     } catch (error) {
       console.error("Failed to update QR code name", error);
       toast({
@@ -66,6 +85,9 @@ const QRManagement = () => {
         description: "Could not update the QR code name on the server",
         variant: "destructive"
       });
+      return false;
+    } finally {
+      setIsUpdating(false);
     }
   };
   
@@ -74,16 +96,24 @@ const QRManagement = () => {
     setEditValue(currentName);
   };
   
-  const saveEdit = (id: string) => {
+  const saveEdit = async (id: string) => {
     if (editValue.trim()) {
-      setCheckpointTags(prevTags =>
-        prevTags.map(tag =>
-          tag.id === id ? { ...tag, checkpointName: editValue } : tag
-        )
-      );
-      updateQRCodeNameOnServer(id, editValue);
+      const success = await updateQRCodeNameOnServer(id, editValue);
+      if (success) {
+        setCheckpointTags(prevTags =>
+          prevTags.map(tag =>
+            tag.id === id ? { ...tag, checkpointName: editValue } : tag
+          )
+        );
+        setEditingTagId(null);
+      }
+    } else {
+      toast({
+        title: "Invalid Name",
+        description: "Checkpoint name cannot be empty",
+        variant: "destructive"
+      });
     }
-    setEditingTagId(null);
   };
   
   const cancelEdit = () => {
@@ -241,29 +271,34 @@ const QRManagement = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.05 * index }}
               >
-                <div className="flex items-center">
+                <div className="flex items-center flex-1">
                   {tag.type === 'qr' ? (
                     <QrCode className="h-4 w-4 mr-2 text-muted-foreground" />
                   ) : (
                     <Smartphone className="h-4 w-4 mr-2 text-muted-foreground" />
                   )}
-                  <div>
+                  <div className="flex-1 max-w-[200px] sm:max-w-[300px]">
                     {editingTagId === tag.id ? (
-                      <input
-                        type="text"
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="font-medium py-1 px-2 border rounded-md w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit(tag.id);
-                          if (e.key === 'Escape') cancelEdit();
-                        }}
-                      />
+                      <div className="flex items-center">
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="font-medium py-1 px-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-primary"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEdit(tag.id);
+                            if (e.key === 'Escape') cancelEdit();
+                          }}
+                          disabled={isUpdating}
+                        />
+                      </div>
                     ) : (
-                      <div className="font-medium">{tag.checkpointName}</div>
+                      <div>
+                        <div className="font-medium truncate">{tag.checkpointName}</div>
+                        <div className="text-sm text-muted-foreground truncate">ID: {tag.id}</div>
+                      </div>
                     )}
-                    <div className="text-sm text-muted-foreground">ID: {tag.id}</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -273,13 +308,19 @@ const QRManagement = () => {
                         variant="ghost" 
                         size="icon"
                         onClick={() => saveEdit(tag.id)}
+                        disabled={isUpdating}
                       >
-                        <Check className="h-4 w-4 text-green-500" />
+                        {isUpdating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4 text-green-500" />
+                        )}
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="icon"
                         onClick={cancelEdit}
+                        disabled={isUpdating}
                       >
                         <X className="h-4 w-4 text-red-500" />
                       </Button>

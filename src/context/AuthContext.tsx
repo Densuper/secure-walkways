@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -66,6 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Store the JWT token for authenticated requests
         localStorage.setItem('secureWalkToken', data.token);
         
+        // Clear any previous session data for this user
+        clearUserSessionData();
+        
         setLoading(false);
         return true;
       } else {
@@ -89,7 +93,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const clearUserSessionData = () => {
+    // Clear all user-specific session data
+    if (user) {
+      sessionStorage.removeItem(`userExpandedCheckpoint_${user.id}`);
+      sessionStorage.removeItem(`adminExpandedWalk_${user.id}`);
+    }
+  };
+
+  const logout = async () => {
+    if (user) {
+      // Attempt to invalidate token on server
+      const token = localStorage.getItem('secureWalkToken');
+      
+      if (token) {
+        try {
+          // Call the logout endpoint to invalidate the token
+          await fetch(`${API_BASE_URL}/api/logout`, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            }
+          });
+        } catch (error) {
+          console.error("Logout error:", error);
+          // Continue with local logout even if server request fails
+        }
+      }
+    }
+    
+    // Clear user data from state and storage
     setUser(null);
     localStorage.removeItem('secureWalkUser');
     localStorage.removeItem('secureWalkToken');
