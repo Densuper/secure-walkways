@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -74,9 +73,6 @@ const WalkHistory = () => {
   };
   
   const navigateToDetails = (walkId: string) => {
-    // In a real app, we would navigate to a walk details page
-    // For now, we'll log it and show a toast
-    console.log(`Navigate to details for walk ${walkId}`);
     navigate(`/walk-details/${walkId}`);
   };
 

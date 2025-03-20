@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -20,7 +19,7 @@ interface CheckpointTag {
   type: 'qr' | 'nfc';
 }
 
-// Get the API URL from AuthContext
+// Get the API URL from environment variables or fallback to window.location.origin
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
 const QRManagement = () => {
@@ -32,7 +31,6 @@ const QRManagement = () => {
   const [scanMode, setScanMode] = useState<'assign' | 'verify'>('assign');
   const [scanType, setScanType] = useState<'qr' | 'nfc'>('qr');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [newCheckpointName, setNewCheckpointName] = useState('');
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
@@ -149,9 +147,6 @@ const QRManagement = () => {
         });
         return;
       }
-      
-      // If this is a new QR/NFC code
-      setNewCheckpointName('');
       
       // Create a default name
       const newTagName = `New ${scanType.toUpperCase()} Checkpoint ${checkpointTags.length + 1}`;
