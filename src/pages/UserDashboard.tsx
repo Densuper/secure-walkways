@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +25,18 @@ const UserDashboard = () => {
     setCheckpoints(mockCheckpoints);
   }, []);
   
+  // Load expanded state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("userExpandedCheckpoint");
+    if (savedState) {
+      try {
+        setExpandedCheckpoint(JSON.parse(savedState));
+      } catch (e) {
+        console.error("Error parsing saved expand state:", e);
+      }
+    }
+  }, []);
+  
   const completedCount = checkpoints.filter(cp => cp.completed).length;
   const remainingCount = checkpoints.length - completedCount;
   
@@ -46,7 +57,10 @@ const UserDashboard = () => {
   };
 
   const toggleExpand = (checkpointId: string) => {
-    setExpandedCheckpoint(expandedCheckpoint === checkpointId ? null : checkpointId);
+    const newExpandedState = expandedCheckpoint === checkpointId ? null : checkpointId;
+    setExpandedCheckpoint(newExpandedState);
+    // Save to localStorage
+    localStorage.setItem("userExpandedCheckpoint", JSON.stringify(newExpandedState));
   };
 
   return (

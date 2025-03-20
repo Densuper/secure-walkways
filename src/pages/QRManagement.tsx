@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '@/components/Layout';
 import NavBar from '@/components/NavBar';
@@ -8,9 +8,10 @@ import Button from '@/components/Button';
 import QRScanner from '@/components/QRScanner';
 import NFCScanner from '@/components/NFCScanner';
 import { mockQRCodes } from '@/lib/utils';
-import { Edit, Plus, QrCode, Smartphone, Trash } from 'lucide-react';
+import { Edit, Plus, QrCode, Smartphone, Trash, Check, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 interface CheckpointTag {
   id: string;
@@ -19,7 +20,11 @@ interface CheckpointTag {
   type: 'qr' | 'nfc';
 }
 
+// Get the API URL from AuthContext
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+
 const QRManagement = () => {
+  const { user } = useAuth();
   const [checkpointTags, setCheckpointTags] = useState<CheckpointTag[]>(
     mockQRCodes.map(qr => ({ ...qr, type: 'qr' }))
   );
@@ -28,6 +33,62 @@ const QRManagement = () => {
   const [scanType, setScanType] = useState<'qr' | 'nfc'>('qr');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [newCheckpointName, setNewCheckpointName] = useState('');
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  
+  // Function to update QR code name on the server
+  const updateQRCodeNameOnServer = async (id: string, newName: string) => {
+    try {
+      // In a real app, you would call your backend API here
+      console.log(`Updating QR code ${id} name to ${newName} on server`);
+      
+      // Simulated API call
+      /*
+      await fetch(`${API_BASE_URL}/api/update-qrcode`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('secureWalkToken')}`
+        },
+        body: JSON.stringify({ id, newName }),
+      });
+      */
+      
+      // For now we're just logging the request that would be made
+      toast({
+        title: "QR Code Updated",
+        description: `Name changed to "${newName}"`,
+      });
+    } catch (error) {
+      console.error("Failed to update QR code name", error);
+      toast({
+        title: "Update Failed",
+        description: "Could not update the QR code name on the server",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const startEditing = (tagId: string, currentName: string) => {
+    setEditingTagId(tagId);
+    setEditValue(currentName);
+  };
+  
+  const saveEdit = (id: string) => {
+    if (editValue.trim()) {
+      setCheckpointTags(prevTags =>
+        prevTags.map(tag =>
+          tag.id === id ? { ...tag, checkpointName: editValue } : tag
+        )
+      );
+      updateQRCodeNameOnServer(id, editValue);
+    }
+    setEditingTagId(null);
+  };
+  
+  const cancelEdit = () => {
+    setEditingTagId(null);
+  };
   
   const handleAssign = (type: 'qr' | 'nfc') => {
     setScanType(type);
@@ -169,13 +230,13 @@ const QRManagement = () => {
         </div>
         
         <Card>
-          <h2 className="text-xl font-semibold mb-4">Checkpoint Tags</h2>
+          <h2 className="text-xl font-semibold p-4 border-b">Checkpoint Tags</h2>
           
           <div className="divide-y">
             {checkpointTags.map((tag, index) => (
               <motion.div 
                 key={tag.id} 
-                className="py-3 flex items-center justify-between"
+                className="py-3 px-4 flex items-center justify-between"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.05 * index }}
@@ -187,21 +248,60 @@ const QRManagement = () => {
                     <Smartphone className="h-4 w-4 mr-2 text-muted-foreground" />
                   )}
                   <div>
-                    <div className="font-medium">{tag.checkpointName}</div>
+                    {editingTagId === tag.id ? (
+                      <input
+                        type="text"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="font-medium py-1 px-2 border rounded-md w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit(tag.id);
+                          if (e.key === 'Escape') cancelEdit();
+                        }}
+                      />
+                    ) : (
+                      <div className="font-medium">{tag.checkpointName}</div>
+                    )}
                     <div className="text-sm text-muted-foreground">ID: {tag.id}</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="icon">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => handleDelete(tag.id)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
+                  {editingTagId === tag.id ? (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => saveEdit(tag.id)}
+                      >
+                        <Check className="h-4 w-4 text-green-500" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={cancelEdit}
+                      >
+                        <X className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => startEditing(tag.id, tag.checkpointName)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(tag.id)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </motion.div>
             ))}

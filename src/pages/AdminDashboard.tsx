@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +22,18 @@ const AdminDashboard = () => {
   });
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [expandedWalk, setExpandedWalk] = useState<string | null>(null);
+  
+  // Load expanded state from localStorage on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("adminExpandedWalk");
+    if (savedState) {
+      try {
+        setExpandedWalk(JSON.parse(savedState));
+      } catch (e) {
+        console.error("Error parsing saved expand state:", e);
+      }
+    }
+  }, []);
   
   const handleLogout = () => {
     logout();
@@ -55,7 +67,10 @@ const AdminDashboard = () => {
   };
 
   const toggleExpand = (walkId: string) => {
-    setExpandedWalk(expandedWalk === walkId ? null : walkId);
+    const newExpandedState = expandedWalk === walkId ? null : walkId;
+    setExpandedWalk(newExpandedState);
+    // Save to localStorage
+    localStorage.setItem("adminExpandedWalk", JSON.stringify(newExpandedState));
   };
 
   return (

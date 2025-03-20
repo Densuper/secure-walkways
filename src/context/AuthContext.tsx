@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -25,12 +24,8 @@ export const useAuth = () => {
   return context;
 };
 
-// Dynamically determine the API base URL
-// In development: Use the Vite environment variable
-// In production: Default to the current origin (same server)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (window.location.origin.includes('localhost') ? 'http://localhost:3000' : window.location.origin);
-
+// Dynamically determine the API base URL - Simplified version
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 console.log('API Base URL:', API_BASE_URL);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
