@@ -52,7 +52,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, 60000); // Check every minute
     
     return () => clearInterval(interval);
-  }, []);
+  }, [theme]);
   
   const updateTheme = (newTheme: Theme) => {
     localStorage.setItem('theme', newTheme);

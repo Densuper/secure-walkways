@@ -1,20 +1,65 @@
-# Welcome to your Lovable project
 
-## Project info
+# Secure Walk - Security Walkways Application
+
+## Project Overview
+
+Secure Walk is a mobile application designed to streamline security checkpoints management, enabling security personnel to efficiently track and monitor security walks throughout facilities.
 
 **URL**: https://lovable.dev/projects/dabe77bd-19a3-4124-8022-a57b17acc87c
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- QR code and NFC tag scanning for checkpoints verification
+- User and admin dashboards with different permission levels
+- Walk history tracking with detailed reports
+- Time-based auto dark/light mode switching
+- Responsive design for mobile and desktop use
 
-**Use Lovable**
+## WhatsApp Deployment Instructions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/dabe77bd-19a3-4124-8022-a57b17acc87c) and start prompting.
+### Setting up Secure Walk on WhatsApp
 
-Changes made via Lovable will be committed automatically to this repo.
+1. **Create a WhatsApp Business API account**:
+   - Register at [WhatsApp Business Platform](https://business.whatsapp.com/)
+   - Complete the verification process for your business
 
-**Use your preferred IDE**
+2. **Configure your webhook endpoint**:
+   - Set up a webhook that points to your Secure Walk app's API endpoint
+   - Configure the webhook to receive messages at `/api/whatsapp/webhook`
+
+3. **Set up authentication**:
+   - In your WhatsApp Business dashboard, generate an API token
+   - Add this token to your Secure Walk backend environment variables
+
+4. **Deploy your WhatsApp commands**:
+   - Available commands:
+     - `/start` - Begin a new security walk
+     - `/scan [QR code]` - Register a checkpoint
+     - `/history` - View recent walks
+     - `/complete` - Mark the current walk as complete
+
+5. **Testing the integration**:
+   - Send a message to your WhatsApp Business number
+   - Use the command `/start` to verify functionality
+   - Complete a test walk to ensure data is properly recorded
+
+### User Instructions
+
+1. **Adding the Secure Walk bot to WhatsApp**:
+   - Save the Secure Walk business number to your contacts
+   - Send "Hello" or "/start" to initiate the bot
+
+2. **Performing a security walk**:
+   - Send `/start` to begin a new walk
+   - At each checkpoint, send `/scan` followed by the checkpoint code or simply scan the QR code
+   - The bot will confirm each checkpoint and record the time
+   - Complete the walk with `/complete`
+
+3. **Viewing walk history**:
+   - Send `/history` to see your recent walks
+   - Send `/details [walk ID]` to see specific checkpoint information
+
+## Development Instructions
 
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
@@ -36,34 +81,25 @@ npm i
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Troubleshooting WhatsApp Integration
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- If messages aren't being received, verify your webhook URL is accessible and correctly configured
+- Make sure the WhatsApp Business API token is valid and has the correct permissions
+- Check your server logs for any webhook verification errors
+- For scanning issues, ensure users have granted camera access in WhatsApp
 
-**Use GitHub Codespaces**
+## Technologies Used
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
+This project is built with:
 
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- React Router
+- Framer Motion for animations
 
-## How can I deploy this project?
+## Deployment
 
-Simply open [Lovable](https://lovable.dev/projects/dabe77bd-19a3-4124-8022-a57b17acc87c) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+To deploy this app to production, use Lovable's built-in deployment feature by clicking on Share -> Publish in the Lovable interface.

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -6,8 +7,9 @@ import Card from '@/components/Card';
 import Button from '@/components/Button';
 import QRScanner from '@/components/QRScanner';
 import NFCScanner from '@/components/NFCScanner';
+import QRCodeEditor from '@/components/QRCodeEditor';
 import { mockQRCodes } from '@/lib/utils';
-import { Edit, Plus, QrCode, Smartphone, Trash, Check, X, Loader2 } from 'lucide-react';
+import { Plus, QrCode, Smartphone, Trash, Check, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -31,94 +33,6 @@ const QRManagement = () => {
   const [scanMode, setScanMode] = useState<'assign' | 'verify'>('assign');
   const [scanType, setScanType] = useState<'qr' | 'nfc'>('qr');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [editingTagId, setEditingTagId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  
-  // Function to update QR code name on the server
-  const updateQRCodeNameOnServer = async (id: string, newName: string) => {
-    if (!newName.trim()) {
-      toast({
-        title: "Invalid Name",
-        description: "Checkpoint name cannot be empty",
-        variant: "destructive"
-      });
-      return false;
-    }
-    
-    setIsUpdating(true);
-    
-    try {
-      // In a real app, you would call your backend API here
-      console.log(`Updating QR code ${id} name to ${newName} on server`);
-      
-      // Actual API call
-      const response = await fetch(`${API_BASE_URL}/api/update-qrcode`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('secureWalkToken')}`
-        },
-        body: JSON.stringify({ id, newName }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update QR code name");
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        toast({
-          title: "QR Code Updated",
-          description: `Name changed to "${newName}"`,
-        });
-        return true;
-      } else {
-        throw new Error(data.error || "Failed to update QR code name");
-      }
-    } catch (error) {
-      console.error("Failed to update QR code name", error);
-      toast({
-        title: "Update Failed",
-        description: error instanceof Error ? error.message : "Could not update the QR code name on the server",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-  
-  const startEditing = (tagId: string, currentName: string) => {
-    setEditingTagId(tagId);
-    setEditValue(currentName);
-  };
-  
-  const saveEdit = async (id: string) => {
-    if (editValue.trim()) {
-      const success = await updateQRCodeNameOnServer(id, editValue);
-      if (success) {
-        setCheckpointTags(prevTags =>
-          prevTags.map(tag =>
-            tag.id === id ? { ...tag, checkpointName: editValue } : tag
-          )
-        );
-        setEditingTagId(null);
-      }
-    } else {
-      toast({
-        title: "Invalid Name",
-        description: "Checkpoint name cannot be empty",
-        variant: "destructive"
-      });
-    }
-  };
-  
-  const cancelEdit = () => {
-    setEditingTagId(null);
-  };
   
   const handleAssign = (type: 'qr' | 'nfc') => {
     setScanType(type);
@@ -256,6 +170,14 @@ const QRManagement = () => {
     setShowDeleteConfirm(null);
   };
 
+  const handleEditQRCode = (id: string, newName: string) => {
+    setCheckpointTags(prevTags =>
+      prevTags.map(tag =>
+        tag.id === id ? { ...tag, checkpointName: newName } : tag
+      )
+    );
+  };
+
   return (
     <Layout>
       <NavBar title="Checkpoint Management" showBack />
@@ -334,84 +256,15 @@ const QRManagement = () => {
             {checkpointTags.map((tag, index) => (
               <motion.div 
                 key={tag.id} 
-                className="py-3 px-4 flex items-center justify-between"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.05 * index }}
               >
-                <div className="flex items-center flex-1">
-                  {tag.type === 'qr' ? (
-                    <QrCode className="h-4 w-4 mr-2 text-muted-foreground" />
-                  ) : (
-                    <Smartphone className="h-4 w-4 mr-2 text-muted-foreground" />
-                  )}
-                  <div className="flex-1 max-w-[200px] sm:max-w-[300px]">
-                    {editingTagId === tag.id ? (
-                      <div className="flex items-center">
-                        <input
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          className="font-medium py-1 px-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-primary"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveEdit(tag.id);
-                            if (e.key === 'Escape') cancelEdit();
-                          }}
-                          disabled={isUpdating}
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="font-medium truncate">{tag.checkpointName}</div>
-                        <div className="text-sm text-muted-foreground truncate">ID: {tag.id}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {editingTagId === tag.id ? (
-                    <>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => saveEdit(tag.id)}
-                        disabled={isUpdating}
-                      >
-                        {isUpdating ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4 text-green-500" />
-                        )}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={cancelEdit}
-                        disabled={isUpdating}
-                      >
-                        <X className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => startEditing(tag.id, tag.checkpointName)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDelete(tag.id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <QRCodeEditor
+                  tag={tag}
+                  onDelete={handleDelete}
+                  onEdit={handleEditQRCode}
+                />
               </motion.div>
             ))}
           </div>
