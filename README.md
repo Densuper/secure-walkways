@@ -1,3 +1,4 @@
+
 # Secure Walk - Security Walkways Application
 
 ## Project Overview
@@ -13,6 +14,95 @@ Secure Walk is a mobile application designed to streamline security checkpoints 
 - Walk history tracking with detailed reports
 - Time-based auto dark/light mode switching
 - Responsive design for mobile and desktop use
+
+## Running on Linux
+
+To run this application on any Linux distribution, follow these steps:
+
+1. **Ensure you have Node.js installed**:
+   ```sh
+   # For Debian/Ubuntu-based distributions
+   sudo apt update
+   sudo apt install nodejs npm
+   
+   # For Red Hat/Fedora-based distributions
+   sudo dnf install nodejs npm
+   
+   # For Arch Linux
+   sudo pacman -S nodejs npm
+   
+   # Verify installation
+   node --version
+   npm --version
+   ```
+
+2. **Clone the repository**:
+   ```sh
+   git clone <repository-url>
+   cd secure-walkways
+   ```
+
+3. **Install dependencies**:
+   ```sh
+   npm install
+   ```
+
+4. **Set up environment variables**:
+   ```sh
+   cp .env.example .env
+   ```
+
+5. **Build the application**:
+   ```sh
+   npm run build
+   ```
+
+6. **Start the server**:
+   ```sh
+   npm start
+   ```
+
+7. **Access the application**:
+   - Open your browser and navigate to `http://localhost:3000`
+   - For remote access, use your server's IP address: `http://<your-server-ip>:3000`
+
+## Running as a System Service (systemd)
+
+To run the application as a background service on Linux systems with systemd:
+
+1. **Create a systemd service file**:
+   ```sh
+   sudo nano /etc/systemd/system/securewalk.service
+   ```
+
+2. **Add the following configuration** (adjust paths as needed):
+   ```
+   [Unit]
+   Description=Secure Walk Application
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=<your-username>
+   WorkingDirectory=/path/to/secure-walkways
+   ExecStart=/usr/bin/npm start
+   Restart=on-failure
+   Environment=NODE_ENV=production
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. **Enable and start the service**:
+   ```sh
+   sudo systemctl enable securewalk
+   sudo systemctl start securewalk
+   ```
+
+4. **Check the service status**:
+   ```sh
+   sudo systemctl status securewalk
+   ```
 
 ## Running on Android with Termux
 
@@ -112,6 +202,13 @@ The application comes with two default users:
   - Username: `user`
   - Password: `user`
 
+## Troubleshooting Linux Installation
+
+- **Permission Denied**: If you encounter permission issues when accessing ports below 1024, try running with sudo or set up port forwarding
+- **Missing Dependencies**: Some distributions might require additional packages. Use your distribution's package manager to install them
+- **Firewall Issues**: Make sure your firewall allows traffic on the required port: `sudo ufw allow 3000/tcp`
+- **Port Already in Use**: Use `netstat -tulpn | grep 3000` to check if the port is already in use, then either stop the existing service or change the port in your `.env` file
+
 ## WhatsApp Deployment Instructions
 
 ### Setting up Secure Walk on WhatsApp
@@ -193,3 +290,4 @@ To deploy this app to production:
    ```
 
 3. The application will be available at the configured port (default: 3000)
+
