@@ -1,4 +1,3 @@
-
 # Secure Walk - Security Walkways Application
 
 ## Project Overview
@@ -14,6 +13,52 @@ Secure Walk is a mobile application designed to streamline security checkpoints 
 - Walk history tracking with detailed reports
 - Time-based auto dark/light mode switching
 - Responsive design for mobile and desktop use
+
+## Running on macOS (Intel and Apple Silicon)
+
+To run this application on macOS, including M1/M2 Macs, follow these steps:
+
+1. **Ensure you have Node.js installed**:
+   ```sh
+   # Using Homebrew (recommended)
+   brew install node
+   
+   # Alternatively, download from Node.js website
+   # https://nodejs.org/
+   
+   # Verify installation
+   node --version
+   npm --version
+   ```
+
+2. **Clone the repository**:
+   ```sh
+   git clone <repository-url>
+   cd secure-walkways
+   ```
+
+3. **Install dependencies**:
+   ```sh
+   npm install
+   ```
+
+4. **Set up environment variables**:
+   ```sh
+   cp .env.example .env
+   ```
+
+5. **Build the application**:
+   ```sh
+   npm run build
+   ```
+
+6. **Start the server**:
+   ```sh
+   npm start
+   ```
+
+7. **Access the application**:
+   - Open your browser and navigate to `http://localhost:3000`
 
 ## Running on Linux
 
@@ -209,6 +254,13 @@ The application comes with two default users:
 - **Firewall Issues**: Make sure your firewall allows traffic on the required port: `sudo ufw allow 3000/tcp`
 - **Port Already in Use**: Use `netstat -tulpn | grep 3000` to check if the port is already in use, then either stop the existing service or change the port in your `.env` file
 
+## Troubleshooting macOS Installation
+
+- **Permission Denied**: If you encounter permission issues with npm or node, try using `sudo` or fix permissions with: `sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}`
+- **Rosetta Issues** (Intel apps on M1): If you're having compatibility issues on M1/M2 Macs, try installing Node.js using Rosetta: `arch -x86_64 zsh` then reinstall Node.js
+- **XCode Command Line Tools**: Some dependencies may require XCode tools: `xcode-select --install`
+- **Port Already in Use**: Use `lsof -i :3000` to check if the port is in use, then either stop the service or change the port in `.env`
+
 ## WhatsApp Deployment Instructions
 
 ### Setting up Secure Walk on WhatsApp
@@ -290,4 +342,3 @@ To deploy this app to production:
    ```
 
 3. The application will be available at the configured port (default: 3000)
-
