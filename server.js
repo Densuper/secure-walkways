@@ -1,13 +1,29 @@
-
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const os = require('os');
 
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Get local IP address for easier access from other devices
+const getLocalIpAddress = () => {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Skip over non-IPv4 and internal (loopback) addresses
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+};
+
+const localIp = getLocalIpAddress();
 
 // Middleware
 app.use(cors());
@@ -191,6 +207,50 @@ app.delete('/api/delete-qrcode/:id', authenticateToken, (req, res) => {
   res.json({ success: true });
 });
 
+// Add a root route to display server info
+app.get('/server-info', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Secure Walk Server</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+          .container { max-width: 600px; margin: 0 auto; }
+          pre { background: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+          .url { font-weight: bold; color: #0066cc; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Secure Walk Server</h1>
+          <p>Server is running successfully!</p>
+          
+          <h2>Access URLs:</h2>
+          <p>You can access the application at:</p>
+          <ul>
+            <li>Local: <span class="url">http://localhost:${PORT}</span></li>
+            <li>Network: <span class="url">http://${localIp}:${PORT}</span></li>
+          </ul>
+          
+          <h2>Default Users:</h2>
+          <pre>
+Username: admin
+Password: admin
+Role: admin
+
+Username: user
+Password: user
+Role: user
+          </pre>
+          
+          <p>To access the main application, visit the Network URL in your Android browser.</p>
+        </div>
+      </body>
+    </html>
+  `);
+});
+
 // In production, serve the Vite build
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'dist')));
@@ -201,6 +261,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Local: http://localhost:${PORT}`);
+  console.log(`Network: http://${localIp}:${PORT}`);
 });

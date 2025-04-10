@@ -1,4 +1,3 @@
-
 # Secure Walk - Security Walkways Application
 
 ## Project Overview
@@ -15,7 +14,48 @@ Secure Walk is a mobile application designed to streamline security checkpoints 
 - Time-based auto dark/light mode switching
 - Responsive design for mobile and desktop use
 
-## Running Locally
+## Running on Android with Termux
+
+To run this application on Android using Termux, follow these steps:
+
+1. **Install Termux** from F-Droid (recommended) or Google Play Store
+
+2. **Set up Termux environment**:
+   ```sh
+   # Update and upgrade packages
+   pkg update && pkg upgrade
+   
+   # Install required dependencies
+   pkg install nodejs git openssh
+   ```
+
+3. **Clone the repository**:
+   ```sh
+   git clone <repository-url>
+   cd secure-walkways
+   ```
+
+4. **Install dependencies**:
+   ```sh
+   npm install
+   ```
+
+5. **Build the application**:
+   ```sh
+   npm run build
+   ```
+
+6. **Start the server**:
+   ```sh
+   npm start
+   ```
+
+7. **Access the application**:
+   - The server will display URLs you can access
+   - Open your Android browser and navigate to the displayed Network URL (typically http://192.168.x.x:3000)
+   - You can also visit http://localhost:3000/server-info to see connection details
+
+## Running Locally (Desktop)
 
 To run this application locally, follow these steps:
 
@@ -116,11 +156,13 @@ The application comes with two default users:
    - Send `/history` to see your recent walks
    - Send `/details [walk ID]` to see specific checkpoint information
 
-## Troubleshooting
+## Troubleshooting Termux Installation
 
-- **API Connection Issues**: Make sure the backend server is running and accessible
-- **Authentication Errors**: Check your network connection and credentials
-- **QR Code Scanning Issues**: Ensure adequate lighting and proper QR code alignment
+- **Permission Denied**: If you encounter permission issues, try running `termux-setup-storage` to request storage access
+- **Port Already in Use**: Use `netstat -tulpn | grep <port>` to check if the port is already in use
+- **Network Access**: Ensure Termux has network access permissions
+- **Low Storage**: Check available storage with `df -h`
+- **Memory Issues**: Termux has limited resources, consider reducing the Node.js memory usage with `NODE_OPTIONS="--max-old-space-size=512"`
 
 ## Technologies Used
 
