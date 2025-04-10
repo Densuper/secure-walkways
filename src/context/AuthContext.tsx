@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -25,9 +24,9 @@ export const useAuth = () => {
   return context;
 };
 
-// Dynamically determine the API base URL - Simplified version
+// Dynamically determine the API base URL - with fallback to window.location.origin
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
-console.log('API Base URL:', API_BASE_URL);
+console.log('API Base URL used by AuthContext:', API_BASE_URL);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -44,6 +43,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string): Promise<boolean> => {
     setLoading(true);
+    
+    // Mock login for local development without a backend
+    if (process.env.NODE_ENV === 'development' && !API_BASE_URL) {
+      console.log('Using mock login in development');
+      const mockUsers = [
+        { username: 'admin', password: 'admin', role: 'admin' },
+        { username: 'user', password: 'user', role: 'user' }
+      ];
+      
+      const foundUser = mockUsers.find(
+        user => user.username === username && user.password === password
+      );
+      
+      if (foundUser) {
+        const newUser = {
+          id: `${foundUser.role}_${Date.now()}`,
+          username: foundUser.username,
+          role: foundUser.role as 'user' | 'admin'
+        };
+        
+        setUser(newUser);
+        localStorage.setItem('secureWalkUser', JSON.stringify(newUser));
+        localStorage.setItem('secureWalkToken', 'mock-token-for-development');
+        
+        clearUserSessionData();
+        setLoading(false);
+        return true;
+      } else {
+        setLoading(false);
+        toast({
+          title: "Login failed",
+          description: "Invalid credentials",
+          variant: "destructive"
+        });
+        return false;
+      }
+    }
     
     try {
       const response = await fetch(`${API_BASE_URL}/api/login`, {

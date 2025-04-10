@@ -15,6 +15,65 @@ Secure Walk is a mobile application designed to streamline security checkpoints 
 - Time-based auto dark/light mode switching
 - Responsive design for mobile and desktop use
 
+## Running Locally
+
+To run this application locally, follow these steps:
+
+### Frontend Setup
+
+1. **Clone the repository**:
+   ```sh
+   git clone <repository-url>
+   cd secure-walkways
+   ```
+
+2. **Install dependencies**:
+   ```sh
+   npm install
+   ```
+
+3. **Set up environment variables**:
+   - Copy `.env.example` to `.env.local`:
+     ```sh
+     cp .env.example .env.local
+     ```
+   - Edit `.env.local` and set `VITE_API_BASE_URL` to your backend URL (e.g., `http://localhost:3000`)
+
+4. **Start the development server**:
+   ```sh
+   npm run dev
+   ```
+   This will start the frontend at `http://localhost:8080`
+
+### Backend Setup
+
+The application requires a backend server. You can either:
+
+1. **Use the existing Railway backend**:
+   - Set `VITE_API_BASE_URL=https://secure-walkways-backend-production.up.railway.app` in your `.env.local`
+   
+2. **Run a local backend server**:
+   - Clone the backend repository (if separate)
+   - Install backend dependencies
+   - Start the backend server at `http://localhost:3000`
+   - Make sure to set `VITE_API_BASE_URL=http://localhost:3000` in your `.env.local`
+
+### Backend API Endpoints
+
+The backend should implement the following API endpoints:
+
+- `POST /api/login` - User authentication
+- `POST /api/logout` - User logout
+- `GET /api/walks` - Get walk history
+- `POST /api/start-walk` - Start a new security walk
+- `POST /api/complete-checkpoint` - Register a completed checkpoint
+- `POST /api/complete-walk` - Complete a security walk
+- `GET /api/checkpoints` - Get all checkpoints
+- `POST /api/add-qrcode` - Add a new QR code checkpoint
+- `POST /api/update-qrcode` - Update a QR code checkpoint
+- `DELETE /api/delete-qrcode/:id` - Delete a QR code checkpoint
+- `GET /api/walk-details/:walkId` - Get details of a specific walk
+
 ## WhatsApp Deployment Instructions
 
 ### Setting up Secure Walk on WhatsApp
@@ -58,6 +117,12 @@ Secure Walk is a mobile application designed to streamline security checkpoints 
 3. **Viewing walk history**:
    - Send `/history` to see your recent walks
    - Send `/details [walk ID]` to see specific checkpoint information
+
+## Troubleshooting
+
+- **API Connection Issues**: Make sure the backend server is running and accessible
+- **Authentication Errors**: Check your network connection and credentials
+- **QR Code Scanning Issues**: Ensure adequate lighting and proper QR code alignment
 
 ## Development Instructions
 
