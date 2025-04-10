@@ -9,13 +9,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    proxy: mode === 'development' ? {
+    proxy: {
       '/api': {
         target: process.env.VITE_API_BASE_URL || 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       }
-    } : undefined,
+    },
   },
   plugins: [
     react(),

@@ -19,8 +19,6 @@ Secure Walk is a mobile application designed to streamline security checkpoints 
 
 To run this application locally, follow these steps:
 
-### Frontend Setup
-
 1. **Clone the repository**:
    ```sh
    git clone <repository-url>
@@ -33,46 +31,46 @@ To run this application locally, follow these steps:
    ```
 
 3. **Set up environment variables**:
-   - Copy `.env.example` to `.env.local`:
+   - Copy `.env.example` to `.env`:
      ```sh
-     cp .env.example .env.local
+     cp .env.example .env
      ```
-   - Edit `.env.local` and set `VITE_API_BASE_URL` to your backend URL (e.g., `http://localhost:3000`)
+   - For local development, use:
+     ```
+     VITE_API_BASE_URL=http://localhost:3000
+     ```
 
-4. **Start the development server**:
+4. **Update scripts**:
+   ```sh
+   node scripts.js
+   ```
+
+5. **Development mode (Frontend + Backend)**:
    ```sh
    npm run dev
    ```
-   This will start the frontend at `http://localhost:8080`
+   This will start:
+   - Backend server at `http://localhost:3000`
+   - Frontend dev server at `http://localhost:8080`
 
-### Backend Setup
+6. **Production mode**:
+   ```sh
+   npm run build
+   npm start
+   ```
+   This will build the frontend and serve both frontend and backend from the same server at `http://localhost:3000`
 
-The application requires a backend server. You can either:
+## Default Users
 
-1. **Use the existing Railway backend**:
-   - Set `VITE_API_BASE_URL=https://secure-walkways-backend-production.up.railway.app` in your `.env.local`
-   
-2. **Run a local backend server**:
-   - Clone the backend repository (if separate)
-   - Install backend dependencies
-   - Start the backend server at `http://localhost:3000`
-   - Make sure to set `VITE_API_BASE_URL=http://localhost:3000` in your `.env.local`
+The application comes with two default users:
 
-### Backend API Endpoints
+- **Admin**:
+  - Username: `admin`
+  - Password: `admin`
 
-The backend should implement the following API endpoints:
-
-- `POST /api/login` - User authentication
-- `POST /api/logout` - User logout
-- `GET /api/walks` - Get walk history
-- `POST /api/start-walk` - Start a new security walk
-- `POST /api/complete-checkpoint` - Register a completed checkpoint
-- `POST /api/complete-walk` - Complete a security walk
-- `GET /api/checkpoints` - Get all checkpoints
-- `POST /api/add-qrcode` - Add a new QR code checkpoint
-- `POST /api/update-qrcode` - Update a QR code checkpoint
-- `DELETE /api/delete-qrcode/:id` - Delete a QR code checkpoint
-- `GET /api/walk-details/:walkId` - Get details of a specific walk
+- **Regular User**:
+  - Username: `user`
+  - Password: `user`
 
 ## WhatsApp Deployment Instructions
 
@@ -124,35 +122,6 @@ The backend should implement the following API endpoints:
 - **Authentication Errors**: Check your network connection and credentials
 - **QR Code Scanning Issues**: Ensure adequate lighting and proper QR code alignment
 
-## Development Instructions
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-## Troubleshooting WhatsApp Integration
-
-- If messages aren't being received, verify your webhook URL is accessible and correctly configured
-- Make sure the WhatsApp Business API token is valid and has the correct permissions
-- Check your server logs for any webhook verification errors
-- For scanning issues, ensure users have granted camera access in WhatsApp
-
 ## Technologies Used
 
 This project is built with:
@@ -160,6 +129,8 @@ This project is built with:
 - Vite
 - TypeScript
 - React
+- Express
+- JWT Authentication
 - shadcn-ui
 - Tailwind CSS
 - React Router
@@ -167,4 +138,16 @@ This project is built with:
 
 ## Deployment
 
-To deploy this app to production, use Lovable's built-in deployment feature by clicking on Share -> Publish in the Lovable interface.
+To deploy this app to production:
+
+1. Build the frontend:
+   ```sh
+   npm run build
+   ```
+
+2. Start the server:
+   ```sh
+   npm start
+   ```
+
+3. The application will be available at the configured port (default: 3000)
