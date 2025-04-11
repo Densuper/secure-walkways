@@ -1,126 +1,146 @@
+
 # Secure Walk - Security Walkways Application
 
-## Project Overview
+![Secure Walk](public/og-image.png)
 
-Secure Walk is a mobile application designed to streamline security checkpoints management, enabling security personnel to efficiently track and monitor security walks throughout facilities.
+A comprehensive application for security personnel to efficiently track and monitor security walks throughout facilities.
 
-**URL**: https://lovable.dev/projects/dabe77bd-19a3-4124-8022-a57b17acc87c
+## 📋 Features
 
-## Features
+- **QR Code Scanning:** Verify checkpoints with built-in scanner
+- **User & Admin Dashboards:** Different permission levels for team management
+- **Walk History:** Detailed tracking and reporting
+- **Automated Theming:** Time-based dark/light mode switching
+- **Responsive Design:** Works on mobile and desktop devices
 
-- QR code and NFC tag scanning for checkpoints verification
-- User and admin dashboards with different permission levels
-- Walk history tracking with detailed reports
-- Time-based auto dark/light mode switching
-- Responsive design for mobile and desktop use
+## 🚀 Quick Start
 
-## Running on macOS (Intel and Apple Silicon)
+### Prerequisites
 
-To run this application on macOS, including M1/M2 Macs, follow these steps:
+- Node.js (v14.x or later)
+- npm (v6.x or later)
 
-1. **Ensure you have Node.js installed**:
+### Installation
+
+1. Clone the repository
+   ```sh
+   git clone <repository-url>
+   cd secure-walkways
+   ```
+
+2. Install dependencies
+   ```sh
+   npm install
+   ```
+
+3. Set up environment variables
+   ```sh
+   cp .env.example .env
+   ```
+
+4. For local development, ensure your `.env` file contains:
+   ```
+   VITE_API_BASE_URL=http://localhost:3000
+   NODE_ENV=development
+   PORT=3000
+   ```
+
+## 🏃‍♂️ Running Locally
+
+### Development Mode (Frontend + Backend)
+
+Run both the frontend and backend concurrently:
+
+```sh
+npm run dev
+```
+
+This starts:
+- Backend server at `http://localhost:3000`
+- Frontend development server at `http://localhost:8080`
+
+### Production Mode
+
+For a production-ready build:
+
+```sh
+npm run build
+npm start
+```
+
+This builds the frontend and serves both frontend and backend from the same server at `http://localhost:3000`
+
+## 🧪 Testing the Application
+
+### Default Test Users
+
+The application includes two default users for testing:
+
+- **Admin User**
+  - Username: `admin`
+  - Password: `admin`
+
+- **Regular User**
+  - Username: `user`
+  - Password: `user`
+
+### Testing the QR Scanner
+
+1. Log in using any of the default users
+2. Navigate to the QR Scan page 
+3. Click "Scan QR Code" to activate the camera
+4. Test with these valid checkpoint IDs:
+   - `cp1` (Main Entrance)
+   - `cp2` (East Wing)
+   - `cp3` (North Gate)
+5. You can also generate your own QR codes with these values to test scanning
+
+## 📱 Platform-Specific Guides
+
+<details>
+<summary><b>MacOS (Intel and Apple Silicon)</b></summary>
+
+1. **Install Node.js**
    ```sh
    # Using Homebrew (recommended)
    brew install node
+   ```
+
+2. Follow the standard installation steps above
+
+#### Troubleshooting Mac Installation
+
+- **Permission Issues**: Use `sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}`
+- **M1/M2 Compatibility**: If needed, use Rosetta: `arch -x86_64 zsh` then reinstall Node.js
+- **Missing XCode Tools**: Run `xcode-select --install`
+- **Port in Use**: Check with `lsof -i :3000` and modify port in `.env` if needed
+</details>
+
+<details>
+<summary><b>Linux Deployment</b></summary>
+
+1. **Install Node.js** (choose your distribution)
+   ```sh
+   # Debian/Ubuntu
+   sudo apt update && sudo apt install nodejs npm
    
-   # Alternatively, download from Node.js website
-   # https://nodejs.org/
-   
-   # Verify installation
-   node --version
-   npm --version
-   ```
-
-2. **Clone the repository**:
-   ```sh
-   git clone <repository-url>
-   cd secure-walkways
-   ```
-
-3. **Install dependencies**:
-   ```sh
-   npm install
-   ```
-
-4. **Set up environment variables**:
-   ```sh
-   cp .env.example .env
-   ```
-
-5. **Build the application**:
-   ```sh
-   npm run build
-   ```
-
-6. **Start the server**:
-   ```sh
-   npm start
-   ```
-
-7. **Access the application**:
-   - Open your browser and navigate to `http://localhost:3000`
-
-## Running on Linux
-
-To run this application on any Linux distribution, follow these steps:
-
-1. **Ensure you have Node.js installed**:
-   ```sh
-   # For Debian/Ubuntu-based distributions
-   sudo apt update
-   sudo apt install nodejs npm
-   
-   # For Red Hat/Fedora-based distributions
+   # RHEL/Fedora
    sudo dnf install nodejs npm
    
-   # For Arch Linux
+   # Arch Linux
    sudo pacman -S nodejs npm
-   
-   # Verify installation
-   node --version
-   npm --version
    ```
 
-2. **Clone the repository**:
-   ```sh
-   git clone <repository-url>
-   cd secure-walkways
-   ```
+2. Follow the standard installation steps above
 
-3. **Install dependencies**:
-   ```sh
-   npm install
-   ```
+#### Running as systemd Service
 
-4. **Set up environment variables**:
-   ```sh
-   cp .env.example .env
-   ```
-
-5. **Build the application**:
-   ```sh
-   npm run build
-   ```
-
-6. **Start the server**:
-   ```sh
-   npm start
-   ```
-
-7. **Access the application**:
-   - Open your browser and navigate to `http://localhost:3000`
-   - For remote access, use your server's IP address: `http://<your-server-ip>:3000`
-
-## Running as a System Service (systemd)
-
-To run the application as a background service on Linux systems with systemd:
-
-1. **Create a systemd service file**:
+1. Create a service file:
    ```sh
    sudo nano /etc/systemd/system/securewalk.service
    ```
 
-2. **Add the following configuration** (adjust paths as needed):
+2. Add configuration:
    ```
    [Unit]
    Description=Secure Walk Application
@@ -138,184 +158,57 @@ To run the application as a background service on Linux systems with systemd:
    WantedBy=multi-user.target
    ```
 
-3. **Enable and start the service**:
+3. Enable and start:
    ```sh
    sudo systemctl enable securewalk
    sudo systemctl start securewalk
    ```
 
-4. **Check the service status**:
+#### Troubleshooting Linux Installation
+
+- **Firewall**: Run `sudo ufw allow 3000/tcp` to allow traffic
+- **Port in Use**: Check with `netstat -tulpn | grep 3000`
+</details>
+
+<details>
+<summary><b>Android with Termux</b></summary>
+
+1. **Set up Termux**
    ```sh
-   sudo systemctl status securewalk
-   ```
-
-## Running on Android with Termux
-
-To run this application on Android using Termux, follow these steps:
-
-1. **Install Termux** from F-Droid (recommended) or Google Play Store
-
-2. **Set up Termux environment**:
-   ```sh
-   # Update and upgrade packages
    pkg update && pkg upgrade
-   
-   # Install required dependencies
    pkg install nodejs git openssh
    ```
 
-3. **Clone the repository**:
-   ```sh
-   git clone <repository-url>
-   cd secure-walkways
-   ```
+2. Follow the standard installation steps above
+3. Access the application through your Android browser at the network URL displayed when starting the server
 
-4. **Install dependencies**:
-   ```sh
-   npm install
-   ```
+#### Troubleshooting Termux Installation
 
-5. **Build the application**:
-   ```sh
-   npm run build
-   ```
+- **Storage Access**: Run `termux-setup-storage` if needed
+- **Low Resources**: Use `NODE_OPTIONS="--max-old-space-size=512"` to reduce memory usage
+</details>
 
-6. **Start the server**:
-   ```sh
-   npm start
-   ```
+## 🔒 Security Considerations
 
-7. **Access the application**:
-   - The server will display URLs you can access
-   - Open your Android browser and navigate to the displayed Network URL (typically http://192.168.x.x:3000)
-   - You can also visit http://localhost:3000/server-info to see connection details
+- Current implementation uses in-memory storage (not persistent)
+- JWT authentication is used but should be enhanced with proper key management
+- The JWT secret should be stored in environment variables
+- Input validation should be improved, especially for API routes
+- HTTPS should be implemented for production deployments
+- Consider implementing rate limiting for login attempts
 
-## Running Locally (Desktop)
+## 🌐 WhatsApp Integration
 
-To run this application locally, follow these steps:
+<details>
+<summary><b>Setting Up WhatsApp Business Integration</b></summary>
 
-1. **Clone the repository**:
-   ```sh
-   git clone <repository-url>
-   cd secure-walkways
-   ```
+1. Register at [WhatsApp Business Platform](https://business.whatsapp.com/)
+2. Configure your webhook to point to `/api/whatsapp/webhook`
+3. Add the WhatsApp API token to your environment variables
+4. Use commands like `/start`, `/scan`, `/history`, and `/complete`
+</details>
 
-2. **Install dependencies**:
-   ```sh
-   npm install
-   ```
-
-3. **Set up environment variables**:
-   - Copy `.env.example` to `.env`:
-     ```sh
-     cp .env.example .env
-     ```
-   - For local development, use:
-     ```
-     VITE_API_BASE_URL=http://localhost:3000
-     ```
-
-4. **Update scripts**:
-   ```sh
-   node scripts.js
-   ```
-
-5. **Development mode (Frontend + Backend)**:
-   ```sh
-   npm run dev
-   ```
-   This will start:
-   - Backend server at `http://localhost:3000`
-   - Frontend dev server at `http://localhost:8080`
-
-6. **Production mode**:
-   ```sh
-   npm run build
-   npm start
-   ```
-   This will build the frontend and serve both frontend and backend from the same server at `http://localhost:3000`
-
-## Default Users
-
-The application comes with two default users:
-
-- **Admin**:
-  - Username: `admin`
-  - Password: `admin`
-
-- **Regular User**:
-  - Username: `user`
-  - Password: `user`
-
-## Troubleshooting Linux Installation
-
-- **Permission Denied**: If you encounter permission issues when accessing ports below 1024, try running with sudo or set up port forwarding
-- **Missing Dependencies**: Some distributions might require additional packages. Use your distribution's package manager to install them
-- **Firewall Issues**: Make sure your firewall allows traffic on the required port: `sudo ufw allow 3000/tcp`
-- **Port Already in Use**: Use `netstat -tulpn | grep 3000` to check if the port is already in use, then either stop the existing service or change the port in your `.env` file
-
-## Troubleshooting macOS Installation
-
-- **Permission Denied**: If you encounter permission issues with npm or node, try using `sudo` or fix permissions with: `sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}`
-- **Rosetta Issues** (Intel apps on M1): If you're having compatibility issues on M1/M2 Macs, try installing Node.js using Rosetta: `arch -x86_64 zsh` then reinstall Node.js
-- **XCode Command Line Tools**: Some dependencies may require XCode tools: `xcode-select --install`
-- **Port Already in Use**: Use `lsof -i :3000` to check if the port is in use, then either stop the service or change the port in `.env`
-
-## WhatsApp Deployment Instructions
-
-### Setting up Secure Walk on WhatsApp
-
-1. **Create a WhatsApp Business API account**:
-   - Register at [WhatsApp Business Platform](https://business.whatsapp.com/)
-   - Complete the verification process for your business
-
-2. **Configure your webhook endpoint**:
-   - Set up a webhook that points to your Secure Walk app's API endpoint
-   - Configure the webhook to receive messages at `/api/whatsapp/webhook`
-
-3. **Set up authentication**:
-   - In your WhatsApp Business dashboard, generate an API token
-   - Add this token to your Secure Walk backend environment variables
-
-4. **Deploy your WhatsApp commands**:
-   - Available commands:
-     - `/start` - Begin a new security walk
-     - `/scan [QR code]` - Register a checkpoint
-     - `/history` - View recent walks
-     - `/complete` - Mark the current walk as complete
-
-5. **Testing the integration**:
-   - Send a message to your WhatsApp Business number
-   - Use the command `/start` to verify functionality
-   - Complete a test walk to ensure data is properly recorded
-
-### User Instructions
-
-1. **Adding the Secure Walk bot to WhatsApp**:
-   - Save the Secure Walk business number to your contacts
-   - Send "Hello" or "/start" to initiate the bot
-
-2. **Performing a security walk**:
-   - Send `/start` to begin a new walk
-   - At each checkpoint, send `/scan` followed by the checkpoint code or simply scan the QR code
-   - The bot will confirm each checkpoint and record the time
-   - Complete the walk with `/complete`
-
-3. **Viewing walk history**:
-   - Send `/history` to see your recent walks
-   - Send `/details [walk ID]` to see specific checkpoint information
-
-## Troubleshooting Termux Installation
-
-- **Permission Denied**: If you encounter permission issues, try running `termux-setup-storage` to request storage access
-- **Port Already in Use**: Use `netstat -tulpn | grep <port>` to check if the port is already in use
-- **Network Access**: Ensure Termux has network access permissions
-- **Low Storage**: Check available storage with `df -h`
-- **Memory Issues**: Termux has limited resources, consider reducing the Node.js memory usage with `NODE_OPTIONS="--max-old-space-size=512"`
-
-## Technologies Used
-
-This project is built with:
+## 🛠️ Technologies Used
 
 - Vite
 - TypeScript
@@ -325,11 +218,11 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 - React Router
-- Framer Motion for animations
+- Framer Motion
 
-## Deployment
+## 📦 Deployment
 
-To deploy this app to production:
+### Production Build
 
 1. Build the frontend:
    ```sh
@@ -342,3 +235,8 @@ To deploy this app to production:
    ```
 
 3. The application will be available at the configured port (default: 3000)
+
+## 📄 License
+
+[Insert your license information here]
+
