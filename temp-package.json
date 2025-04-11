@@ -4,12 +4,13 @@
   "version": "1.0.0",
   "description": "Security walkways tracking application",
   "scripts": {
-    "start": "node server.js",
-    "dev:server": "node server.js",
-    "dev:client": "vite",
+    "start": "node backend/server.js",
+    "dev:server": "node backend/server.js",
+    "dev:client": "cd frontend && vite",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "cd frontend && vite build",
+    "preview": "cd frontend && vite preview",
+    "setup": "node setup.js"
   },
   "dependencies": {
     "body-parser": "^1.20.2",
