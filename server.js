@@ -14,7 +14,6 @@ const getLocalIpAddress = () => {
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
-      // Skip over non-IPv4 and internal (loopback) addresses
       if (iface.family === 'IPv4' && !iface.internal) {
         return iface.address;
       }
@@ -25,8 +24,26 @@ const getLocalIpAddress = () => {
 
 const localIp = getLocalIpAddress();
 
-// Middleware
-app.use(cors());
+// Configure CORS for development
+app.use(cors({
+  origin: function(origin, callback) {
+    if(!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:8080',
+      'http://127.0.0.1:8080',
+      `http://${localIp}:8080`,
+    ];
+    
+    if(allowedOrigins.indexOf(origin) === -1){
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
 app.use(bodyParser.json());
 
 // JWT secret (in production, this should be in environment variables)
@@ -60,7 +77,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Auth routes
-app.post('/api/login', (req, res) => {
+app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body;
   
   const user = users.find(u => u.username === username && u.password === password);
@@ -87,7 +104,7 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-app.post('/api/logout', authenticateToken, (req, res) => {
+app.post('/api/auth/logout', authenticateToken, (req, res) => {
   // In a real implementation, you would invalidate the token here
   res.json({ success: true });
 });
@@ -265,4 +282,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Local: http://localhost:${PORT}`);
   console.log(`Network: http://${localIp}:${PORT}`);
+  console.log(`API endpoint: http://localhost:${PORT}/api`);
+  console.log(`Server info: http://localhost:${PORT}/server-info`);
 });
